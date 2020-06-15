@@ -1,7 +1,6 @@
 library(tidyverse)
 library(dotenv)
 library(REDCapR)
-library(openxlsx)
 library(sendmailR)
 
 source("functions.R")
@@ -103,17 +102,22 @@ if (nrow(lab_result) > 0){
   
   # only write to redcap when there are legit records
   if(nrow(lab_result_to_import) > 0 ){
-  redcap_write_oneshot(lab_result_to_import,
+  write_data <- redcap_write_oneshot(lab_result_to_import,
                        redcap_uri = Sys.getenv("URI"),
                        token = Sys.getenv("SURVEY_TOKEN"))
   }
+
+  if(write_data$success) {
+  write.csv(lab_result_to_import, paste0(output_dir, "/imported_lab_result_log_",
+                                         script_run_time, ".csv"),
+            row.names = F, na = "")
+  }
   
-  all_output <- list("Results Imported" = lab_result_to_import,
-                     "Results Not Imported" = bad_lab_result)
-  
-  write.xlsx(all_output, 
-             paste0(output_dir, "/lab_result_log_", script_run_time, ".xlsx"), 
-             na = "")
+  if(nrow(bad_lab_result) > 0) {
+    write.csv(bad_lab_result, paste0(output_dir, "/lab_result_with_errors_log_",
+                                           script_run_time, ".csv"),
+              row.names = F, na = "")
+  }
   
   # Zip the reports generated
   zipfile_name <-  paste0(output_dir, ".zip")
@@ -127,7 +131,7 @@ if (nrow(lab_result) > 0){
   
   body <- paste0("The attached file(s) includes a log of all results that were uploaded",
                " to the REDCap project, ", project_title, " (PID ", project_pid ,")",
-               "\n\nNumber of records uploaded: ", nrow(lab_result_to_import),
+               "\n\nNumber of records uploaded: ", write_data$records_affected_count,
                "\nNumber of records not uploaded: ", nrow(bad_lab_result),
                "\n\nIf there are records that were not uploaded, then there were",
                " improper values in the result column or incorrect record_ids were used", 

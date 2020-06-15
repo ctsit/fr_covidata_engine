@@ -12,9 +12,6 @@ RUN apt install -y openssh-client
 # remove need to verify ssh servers
 RUN echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
-# Add stupid R-packages we should stop using
-RUN R -e "install.packages(c('openxlsx'))"
-
 ADD *.R /home/rocker/
 
 # Note where we are and what is there
