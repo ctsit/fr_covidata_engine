@@ -3,6 +3,11 @@ All notable changes to the REDCap First Responder COVID-19 ETL Engine project wi
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.6.0] - 2020-08-06
+### Changed
+ * Added `research_encounter_id` to Swab Results Imported report (Taeber Rapczak)
+
+
 ## [0.5.1] - 2020-07-02
 ### Changed
 - Allow indeterminate lab results to be loaded for FR IgG (Philip Chase)
