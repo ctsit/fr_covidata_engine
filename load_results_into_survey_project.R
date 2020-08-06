@@ -74,7 +74,7 @@ swab_result <- result_project_read %>%
     str_detect(str_to_lower(covid_19_swab_result), "ina") ~ "99",
     TRUE ~ covid_19_swab_result
   )) %>%
-  select(record_id, redcap_event_name, covid_19_swab_result, verified_id) %>%
+  select(record_id, redcap_event_name, research_encounter_id, covid_19_swab_result, verified_id) %>%
   arrange(record_id) 
 
 # only send an email when there are new swab results
@@ -99,7 +99,10 @@ if (nrow(swab_result) > 0){
   
   # only write to redcap when there are legit records
   if(nrow(swab_result_to_import) > 0 ){
-  redcap_write_oneshot(swab_result_to_import,
+    # Remove the research_encounter_id field to minimize the data being changed.
+    survey_records_to_update <- swab_result_to_import %>%
+      select(-research_encounter_id)
+    redcap_write_oneshot(survey_records_to_update,
                        redcap_uri = 'https://redcap.ctsi.ufl.edu/redcap/api/',
                        token = Sys.getenv("SURVEY_TOKEN"))
   }
