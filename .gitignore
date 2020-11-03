@@ -48,3 +48,4 @@ vignettes/*.pdf
 *.env
 !example.env
 !example_pky.env
+.Rproj.user
