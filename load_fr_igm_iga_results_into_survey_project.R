@@ -116,12 +116,12 @@ if (nrow(lab_result) > 0){
     bind_rows(result_id_with_bad_checksum) %>% 
     bind_rows(result_id_with_no_match_in_survey)
   
-  # only write to redcap when there are legit records
-  #if(nrow(lab_result_to_import) > 0 ){
-  #redcap_write_oneshot(lab_result_to_import,
-  #                     redcap_uri = Sys.getenv("URI"),
-  #                     token = Sys.getenv("SURVEY_TOKEN"))
-  # }
+   #only write to redcap when there are legit records
+  if(nrow(lab_result_to_import) > 0 ){
+  redcap_write_oneshot(lab_result_to_import,
+                       redcap_uri = Sys.getenv("URI"),
+                       token = Sys.getenv("SURVEY_TOKEN"))
+   }
   
   all_output <- list("Results Imported" = lab_result_to_import,
                      "Results Not Imported" = bad_lab_result)
