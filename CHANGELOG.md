@@ -2,6 +2,10 @@
 All notable changes to the REDCap First Responder COVID-19 ETL Engine project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2020-11-03
+### Changed
+ * Added .rproject.user to gitignore file (Mel Moreno)
+ * Added handling for igm and iga antibodies to the load_fr_igm_iga_results_into_survey_project.R file to handle results between the upload and testing project (Mel Moreno)
 
 ## [0.6.0] - 2020-08-06
 ### Changed
