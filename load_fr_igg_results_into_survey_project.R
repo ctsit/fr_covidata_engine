@@ -29,7 +29,7 @@ survey_project_read <- redcap_read_oneshot(redcap_uri = Sys.getenv("URI"),
                                token = Sys.getenv("SURVEY_TOKEN"))$data %>%
   filter(!is.na(research_encounter_id)) %>%
   select(record_id, redcap_event_name, research_encounter_id, 
-         covid_19_swab_result, saliva_result, igg_antibodies, igm_antibodies)
+         saliva_result, igg_antibodies, igm_antibodies)
 
 # survey records without a lab result
 survey_lab_data <- survey_project_read %>%
