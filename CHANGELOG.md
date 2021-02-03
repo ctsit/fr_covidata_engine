@@ -2,6 +2,15 @@
 All notable changes to the REDCap First Responder COVID-19 ETL Engine project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2021-02-03
+### Summary
+This release copies the old swab result script and updates the load results
+script to handle saliva results upload instead of swab.
+
+### Updated
+* Remove swab results from exclusion logic and replace with saliva (Samantha Emerson)
+* Replace swab variable with saliva for result processing (Samantha Emerson)
+
 ## [0.7.0] - 2020-11-03
 ### Changed
  * Added .rproject.user to gitignore file (Mel Moreno)
