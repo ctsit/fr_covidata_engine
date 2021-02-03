@@ -35,14 +35,14 @@ survey_project_read <-
     record_id,
     redcap_event_name,
     research_encounter_id,
-    saliva_result,
+    covid_19_swab_result,
     igg_antibodies,
     igm_antibodies
   )
 
-# survey records without saliva data
-survey_saliva_data <- survey_project_read %>%
-  filter(is.na(saliva_result)) %>%
+# survey records without swab data
+survey_swab_data <- survey_project_read %>%
+  filter(is.na(covid_19_swab_result)) %>%
   select(record_id, redcap_event_name, research_encounter_id)
 
 # read data from result upload project, (prod pid 8270)
@@ -63,7 +63,7 @@ result_id_with_bad_checksum <- result_project_read %>%
   mutate(reason_not_imported = "bad checksum in barcode id") %>%
   select(
     record_id,
-    saliva_result,
+    covid_19_swab_result,
     verified_id,
     reason_not_imported
   )
@@ -78,64 +78,64 @@ result_id_without_match <- result_project_read %>%
   mutate(reason_not_imported = "no match in target project") %>%
   select(
     record_id,
-    saliva_result,
+    covid_19_swab_result,
     verified_id,
     reason_not_imported
   )
 
-# make result upload file for saliva
-saliva_result <- result_project_read %>%
+# make result upload file for swabs
+swab_result <- result_project_read %>%
   filter(!is.na(record_id)) %>%
   select(
     research_encounter_id = record_id,
-    saliva_result,
+    covid_19_swab_result,
     verified_id
   ) %>%
-  filter(!is.na(saliva_result)) %>%
-  # join to get records in survey project without saliva results
-  inner_join(survey_saliva_data, by = c("research_encounter_id")) %>%
+  filter(!is.na(covid_19_swab_result)) %>%
+  # join to get records in survey project without swab results
+  inner_join(survey_swab_data, by = c("research_encounter_id")) %>%
   mutate(
-    saliva_result = case_when(
-      str_detect(str_to_lower(saliva_result), "pos") ~ "1",
-      str_detect(str_to_lower(saliva_result), "neg") ~ "0",
-      str_detect(str_to_lower(saliva_result), "ina") ~ "99",
-      TRUE ~ saliva_result
+    covid_19_swab_result = case_when(
+      str_detect(str_to_lower(covid_19_swab_result), "pos") ~ "1",
+      str_detect(str_to_lower(covid_19_swab_result), "neg") ~ "0",
+      str_detect(str_to_lower(covid_19_swab_result), "ina") ~ "99",
+      TRUE ~ covid_19_swab_result
     )
   ) %>%
   select(
     record_id,
     redcap_event_name,
     research_encounter_id,
-    saliva_result,
+    covid_19_swab_result,
     verified_id
   ) %>%
   arrange(record_id)
 
-# only send an email when there are new saliva results
-if (nrow(saliva_result) > 0) {
+# only send an email when there are new swab results
+if (nrow(swab_result) > 0) {
   # create folder to store output
   output_dir <- paste0("fr_covid19_import_log_", script_run_time)
   dir.create(output_dir, recursive = T)
 
   # write data to survey project
-  saliva_result_to_import <- saliva_result %>%
-    filter(saliva_result %in% c("1", "0", "99") &
+  swab_result_to_import <- swab_result %>%
+    filter(covid_19_swab_result %in% c("1", "0", "99") &
       verified_id) %>%
     select(-verified_id)
 
-  bad_saliva_result <- saliva_result %>%
+  bad_swab_result <- swab_result %>%
     select(-redcap_event_name) %>%
-    filter(!saliva_result %in% c("1", "0", "99") &
+    filter(!covid_19_swab_result %in% c("1", "0", "99") &
       verified_id) %>%
-    mutate(reason_not_imported = "improper value for saliva result") %>%
+    mutate(reason_not_imported = "improper value for swab result") %>%
     mutate_at(vars(record_id), as.character) %>%
     bind_rows(result_id_with_bad_checksum) %>%
     bind_rows(result_id_without_match)
 
   # only write to redcap when there are legit records
-  if (nrow(saliva_result_to_import) > 0) {
+  if (nrow(swab_result_to_import) > 0) {
     # Remove the research_encounter_id field to minimize the data being changed.
-    survey_records_to_update <- saliva_result_to_import %>%
+    survey_records_to_update <- swab_result_to_import %>%
       select(-research_encounter_id)
     redcap_write_oneshot(
       survey_records_to_update,
@@ -146,13 +146,13 @@ if (nrow(saliva_result) > 0) {
 
   all_output <-
     list(
-      "Saliva Results Imported" = saliva_result_to_import,
-      "Saliva Results Not Imported" = bad_saliva_result
+      "Swab Results Imported" = swab_result_to_import,
+      "Swab Results Not Imported" = bad_swab_result
     )
 
   write.xlsx(
     all_output,
-    paste0(output_dir, "/saliva_result_log_", script_run_time, ".xlsx"),
+    paste0(output_dir, "/swab_result_log_", script_run_time, ".xlsx"),
     na = ""
   )
 
@@ -175,12 +175,12 @@ if (nrow(saliva_result) > 0) {
       project_pid,
       ")",
       "\n\nNumber of records uploaded: ",
-      nrow(saliva_result_to_import),
+      nrow(swab_result_to_import),
       "\nNumber of records not uploaded: ",
-      nrow(bad_saliva_result),
+      nrow(bad_swab_result),
       "\n\nIf there are records that were not uploaded, then there were",
-      " improper values in the saliva result column or incorrect record_ids were used",
-      " Please review the Saliva Results Not Imported tab in the attached log file",
+      " improper values in the swab result column or incorrect record_ids were used",
+      " Please review the Swab Results Not Imported tab in the attached log file",
       " then update these records at ",
       "https://redcap.ctsi.ufl.edu/redcap/redcap_v9.3.5/index.php?pid=",
       result_project_pid

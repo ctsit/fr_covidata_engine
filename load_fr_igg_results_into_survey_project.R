@@ -29,7 +29,7 @@ survey_project_read <- redcap_read_oneshot(redcap_uri = Sys.getenv("URI"),
                                token = Sys.getenv("SURVEY_TOKEN"))$data %>%
   filter(!is.na(research_encounter_id)) %>%
   select(record_id, redcap_event_name, research_encounter_id, 
-         covid_19_swab_result, igg_antibodies, igm_antibodies)
+         saliva_result, igg_antibodies, igm_antibodies)
 
 # survey records without a lab result
 survey_lab_data <- survey_project_read %>%
@@ -69,7 +69,7 @@ lab_result <- result_project_read %>%
   filter(!is.na(record_id)) %>% 
   select(research_encounter_id = record_id, igg_antibodies, verified_id) %>%
   filter(!is.na(igg_antibodies)) %>%  
-  # join to get records in survey project without swab results
+  # join to get records in survey project without results
   inner_join(survey_lab_data, by=c("research_encounter_id")) %>%
   mutate(igg_antibodies = case_when(
     str_detect(str_to_lower(igg_antibodies), "pos") ~ "1",
@@ -81,7 +81,7 @@ lab_result <- result_project_read %>%
   select(record_id, redcap_event_name, igg_antibodies, verified_id) %>%
   arrange(record_id) 
 
-# only send an email when there are new swab results
+# only send an email when there are new results
 if (nrow(lab_result) > 0){
 
   # create folder to store output
